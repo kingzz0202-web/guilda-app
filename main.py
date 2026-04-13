@@ -1,69 +1,34 @@
-from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.textinput import TextInput
-from kivy.uix.button import Button
-from datetime import datetime, timedelta
-import os
+class NameManager:
+    def __init__(self):
+        self.names = []
 
-ARQUIVO = "dados.txt"
-LIMITE = 30
+    def add_name(self, name, date):
+        # date should be in DD/MM format
+        self.names.append((name, date))
 
-class Tela(BoxLayout):
-    def __init__(self, **kwargs):
-        super().__init__(orientation='vertical', **kwargs)
+    def remove_name(self, name):
+        self.names = [n for n in self.names if n[0] != name]
 
-        self.input = TextInput(hint_text="Ex: Vinicius 12d", size_hint=(1, 0.2))
-        self.add_widget(self.input)
+    def filter_by_longest_time(self):
+        from datetime import datetime
+        today = datetime.utcnow()
+        # Convert DD/MM to datetime for comparison
+        return sorted(self.names, key=lambda x: datetime.strptime(x[1], '%d/%m'))
 
-        btn_add = Button(text="Adicionar")
-        btn_add.bind(on_press=self.adicionar)
-        self.add_widget(btn_add)
+    def filter_by_deadline(self):
+        from datetime import datetime, timedelta
+        today = datetime.utcnow()
+        return sorted(self.names, key=lambda x: datetime.strptime(x[1], '%d/%m') - today)
 
-        btn_ver = Button(text="Ver Lista")
-        btn_ver.bind(on_press=self.ver)
-        self.add_widget(btn_ver)
+    def remaining_days(self, name):
+        from datetime import datetime
+        for n in self.names:
+            if n[0] == name:
+                date = datetime.strptime(n[1], '%d/%m')
+                remaining = (date - datetime.utcnow()).days
+                return remaining
+        return None
 
-        self.output = TextInput(readonly=True)
-        self.add_widget(self.output)
-
-    def adicionar(self, instance):
-        try:
-            nome, dias = self.input.text.split()
-            dias = int(dias.replace("d", ""))
-
-            restante = LIMITE - dias
-            data_fim = datetime.now().date() + timedelta(days=restante)
-
-            with open(ARQUIVO, "a") as f:
-                f.write(nome + ";" + str(data_fim) + "\n")
-
-            self.output.text = "Adicionado com sucesso!"
-        except:
-            self.output.text = "Erro! Use formato: Nome 12d"
-
-    def ver(self, instance):
-        if not os.path.exists(ARQUIVO):
-            self.output.text = "Nenhum dado ainda"
-            return
-
-        hoje = datetime.now().date()
-        texto = ""
-
-        with open(ARQUIVO, "r") as f:
-            for linha in f:
-                nome, data = linha.strip().split(";")
-                data = datetime.strptime(data, "%Y-%m-%d").date()
-                restante = (data - hoje).days
-
-                if restante >= 0:
-                    texto += f"{nome} - {restante} dias restantes\n"
-                else:
-                    texto += f"{nome} - expirou ha {abs(restante)} dias\n"
-
-        self.output.text = texto
-
-class GuildaApp(App):
-    def build(self):
-        return Tela()
-
-GuildaApp().run()
+    def display_names(self):
+        for name, date in self.names:
+            print(f'Name: {name}, Date: {date}')
