@@ -11,7 +11,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip build-essential git
+          pip install --upgrade pip
+          pip install buildozer cython
+
       - name: Build APK
-        uses: buildozer/buildozer-action@v1
-        with:
-          command: buildozer android debug
+        run: |
+          buildozer init
+          buildozer -v android debug
