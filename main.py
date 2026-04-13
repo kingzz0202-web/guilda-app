@@ -1,34 +1,26 @@
-class NameManager:
+import datetime
+
+class NameDateManager:
     def __init__(self):
-        self.names = []
+        self.data = []
 
-    def add_name(self, name, date):
-        # date should be in DD/MM format
-        self.names.append((name, date))
+    def add_entry(self, name, date):
+        self.data.append({'name': name, 'date': date})
 
-    def remove_name(self, name):
-        self.names = [n for n in self.names if n[0] != name]
+    def filter_by_name(self, name):
+        return [entry for entry in self.data if entry['name'] == name]
 
-    def filter_by_longest_time(self):
-        from datetime import datetime
-        today = datetime.utcnow()
-        # Convert DD/MM to datetime for comparison
-        return sorted(self.names, key=lambda x: datetime.strptime(x[1], '%d/%m'))
+    def filter_by_date(self, date):
+        return [entry for entry in self.data if entry['date'] == date]
 
-    def filter_by_deadline(self):
-        from datetime import datetime, timedelta
-        today = datetime.utcnow()
-        return sorted(self.names, key=lambda x: datetime.strptime(x[1], '%d/%m') - today)
+    def __str__(self):
+        return '\n'.join([f"{entry['name']} - {entry['date']}" for entry in self.data])
 
-    def remaining_days(self, name):
-        from datetime import datetime
-        for n in self.names:
-            if n[0] == name:
-                date = datetime.strptime(n[1], '%d/%m')
-                remaining = (date - datetime.utcnow()).days
-                return remaining
-        return None
+# Example usage
+manager = NameDateManager()
+manager.add_entry('Alice', '2023-04-13')
+manager.add_entry('Bob', '2023-04-14')
 
-    def display_names(self):
-        for name, date in self.names:
-            print(f'Name: {name}, Date: {date}')
+print("All Entries:", manager)
+print("Filtered by Name:", manager.filter_by_name('Alice'))
+print("Filtered by Date:", manager.filter_by_date('2023-04-13'))
